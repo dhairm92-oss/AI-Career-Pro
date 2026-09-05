@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-surface: #0b0f19;
+    --surface-card: #0f131d;
+    --primary-cyan: #00f0ff;
+    --primary-dim: #00dbe9;
+    --secondary-blue: #0566d9;
+    --tertiary-gold: #fdd55a;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: #0b0f19;
+    color: #dfe2f1;
+    overscroll-behavior-y: none;
+  }
+
+  [dir="rtl"] body, [dir="rtl"] * {
+    font-family: 'Readex Pro', 'Tajawal', 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+
+  /* Safe area handling */
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));
+  }
+  .pt-safe {
+    padding-top: max(0.5rem, env(safe-area-inset-top, 0.5rem));
+  }
+}
+
+/* Custom Glass & Cybernetic Utilities */
+.glass-panel-1 {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.glass-panel-2 {
+  background: rgba(26, 38, 66, 0.65);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  box-shadow: 0 20px 48px -6px rgba(0, 0, 0, 0.7), 0 0 16px -2px rgba(0, 240, 255, 0.15), inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.2);
+}
+
+.glass-gold {
+  background: rgba(30, 26, 16, 0.7);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(253, 213, 90, 0.35);
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.6), 0 0 16px rgba(253, 213, 90, 0.15);
+}
+
+.neon-glow-cyan {
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.4), inset 0 0 12px rgba(0, 240, 255, 0.2);
+}
+
+.neon-glow-gold {
+  box-shadow: 0 0 25px rgba(253, 213, 90, 0.35);
+}
+
+@keyframes laserSweep {
+  0% { top: 0%; opacity: 0.2; }
+  50% { opacity: 0.85; }
+  100% { top: 100%; opacity: 0.2; }
+}
+
+.laser-line {
+  animation: laserSweep 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes pulseNeon {
+  0% { border-color: rgba(0, 240, 255, 0.25); box-shadow: 0 16px 45px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 240, 255, 0.15); }
+  100% { border-color: rgba(0, 240, 255, 0.65); box-shadow: 0 20px 55px rgba(0, 0, 0, 0.85), 0 0 35px rgba(0, 240, 255, 0.35); }
+}
+
+.neon-border-pulse {
+  animation: pulseNeon 3.5s infinite alternate ease-in-out;
+}
+
+@keyframes floatingSlow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+.emblem-float {
+  animation: floatingSlow 4.5s ease-in-out infinite;
+}
+
+/* Hide scrollbar */
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  scrollbar-width: none;
+}

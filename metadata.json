@@ -1,0 +1,7 @@
+{
+  "name": "AI Career Pro",
+  "description": "Executive & leadership career advancement platform with 3D glassmorphism, ATS optimization, and Flutter Clean Architecture package.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
