@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { ScreenId, Language } from '../../types';
+import { ScreenId, Language, DeviceMode } from '../../types';
 import { SCREENS_LIST, ASSETS } from '../../data/mockData';
 
 interface ScreenFlowControllerProps {
   currentScreen: ScreenId;
   language: Language;
-  deviceMode: 'phone' | 'full';
+  deviceMode: DeviceMode;
   onSelectScreen: (screen: ScreenId) => void;
   onToggleLanguage: () => void;
-  onToggleDeviceMode: () => void;
+  onSelectDeviceMode: (mode: DeviceMode) => void;
 }
 
 export const ScreenFlowController: React.FC<ScreenFlowControllerProps> = ({
@@ -17,7 +17,7 @@ export const ScreenFlowController: React.FC<ScreenFlowControllerProps> = ({
   deviceMode,
   onSelectScreen,
   onToggleLanguage,
-  onToggleDeviceMode,
+  onSelectDeviceMode,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -119,18 +119,64 @@ export const ScreenFlowController: React.FC<ScreenFlowControllerProps> = ({
             <span>Flutter Code</span>
           </button>
 
-          {/* View Mode Toggle */}
-          <button
-            type="button"
-            onClick={onToggleDeviceMode}
-            className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-[#b9cacb] hover:text-white transition-all cursor-pointer"
-            title="Toggle Phone Frame or Fluid View"
-          >
-            <span className="material-symbols-outlined text-[16px] text-[#00f0ff]">
-              {deviceMode === 'phone' ? 'stay_current_portrait' : 'devices'}
-            </span>
-            <span>{deviceMode === 'phone' ? 'Phone' : 'Fluid'}</span>
-          </button>
+          {/* 4-Device Viewport Segmented Bar */}
+          <div className="hidden sm:flex items-center gap-0.5 p-1 rounded-xl bg-[#131927] border border-white/10 text-xs shadow-inner">
+            <button
+              type="button"
+              onClick={() => onSelectDeviceMode('mobile')}
+              className={`px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
+                deviceMode === 'mobile'
+                  ? 'bg-cyan-500/20 text-[#00f0ff] font-bold border border-cyan-500/40 shadow-sm'
+                  : 'text-[#94a3b8] hover:text-white hover:bg-white/5'
+              }`}
+              title="Android / Mobile View (390-414px)"
+            >
+              <span className="material-symbols-outlined text-[15px]">smartphone</span>
+              <span className="text-[11px] hidden md:inline">Android/iOS</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onSelectDeviceMode('tablet')}
+              className={`px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
+                deviceMode === 'tablet'
+                  ? 'bg-cyan-500/20 text-[#00f0ff] font-bold border border-cyan-500/40 shadow-sm'
+                  : 'text-[#94a3b8] hover:text-white hover:bg-white/5'
+              }`}
+              title="iPad Pro / Tablet View (768-820px)"
+            >
+              <span className="material-symbols-outlined text-[15px]">tablet_mac</span>
+              <span className="text-[11px] hidden md:inline">iPad</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onSelectDeviceMode('desktop')}
+              className={`px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
+                deviceMode === 'desktop'
+                  ? 'bg-cyan-500/20 text-[#00f0ff] font-bold border border-cyan-500/40 shadow-sm'
+                  : 'text-[#94a3b8] hover:text-white hover:bg-white/5'
+              }`}
+              title="Executive Web Desktop Portal (1150px)"
+            >
+              <span className="material-symbols-outlined text-[15px]">laptop_mac</span>
+              <span className="text-[11px] hidden md:inline">Desktop</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onSelectDeviceMode('fluid')}
+              className={`px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
+                deviceMode === 'fluid'
+                  ? 'bg-cyan-500/20 text-[#00f0ff] font-bold border border-cyan-500/40 shadow-sm'
+                  : 'text-[#94a3b8] hover:text-white hover:bg-white/5'
+              }`}
+              title="Fluid Full Screen Responsive"
+            >
+              <span className="material-symbols-outlined text-[15px]">fullscreen</span>
+              <span className="text-[11px] hidden md:inline">Fluid</span>
+            </button>
+          </div>
 
           {/* Language Toggle Button */}
           <button

@@ -13,6 +13,8 @@ export type ScreenId =
 
 export type Language = 'en' | 'ar';
 
+export type DeviceMode = 'mobile' | 'tablet' | 'desktop' | 'fluid';
+
 export interface UserProfile {
   name: string;
   nameAr: string;

@@ -24,6 +24,9 @@ export const ExecutiveAiCopilotModal: React.FC<ExecutiveAiCopilotModalProps> = (
   const isRTL = language === 'ar';
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isVoiceActive, setIsVoiceActive] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [autoSpeakReplies, setAutoSpeakReplies] = useState(true);
 
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -35,6 +38,65 @@ export const ExecutiveAiCopilotModal: React.FC<ExecutiveAiCopilotModalProps> = (
       tag: 'C-SUITE ADVISORY',
     },
   ]);
+
+  const speakText = (text: string) => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = isRTL ? 'ar-SA' : 'en-US';
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const stopSpeaking = () => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+  };
+
+  const toggleContinuousVoice = () => {
+    if (isVoiceActive) {
+      setIsVoiceActive(false);
+      stopSpeaking();
+      onShowToast(isRTL ? 'تم إيقاف وضع المحادثة الصوتية المستمرة' : 'Continuous voice chat deactivated');
+    } else {
+      setIsVoiceActive(true);
+      onShowToast(
+        isRTL
+          ? 'المحادثة الصوتية الحية نشطة.. تحدث وسأجيبك صوتياً'
+          : 'Live Executive Voice Active.. Speak freely in AR or EN'
+      );
+      // Try Web Speech Recognition if available
+      const SpeechRecognition =
+        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        try {
+          const recognition = new SpeechRecognition();
+          recognition.lang = isRTL ? 'ar-SA' : 'en-US';
+          recognition.continuous = false;
+          recognition.interimResults = false;
+          recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            if (transcript) {
+              handleSend(transcript);
+            }
+          };
+          recognition.onerror = () => {
+            setIsVoiceActive(false);
+          };
+          recognition.start();
+        } catch {
+          // fallback
+        }
+      }
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -96,6 +158,9 @@ export const ExecutiveAiCopilotModal: React.FC<ExecutiveAiCopilotModalProps> = (
         },
       ]);
       setIsTyping(false);
+      if (autoSpeakReplies || isVoiceActive) {
+        speakText(aiResponseText);
+      }
       onShowToast(isRTL ? 'استجابة منارة الذكية جاهزة' : 'Manarah AI Insight Generated');
     }, 700);
   };
@@ -127,14 +192,63 @@ export const ExecutiveAiCopilotModal: React.FC<ExecutiveAiCopilotModalProps> = (
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors cursor-pointer border border-white/10"
-          >
-            <span className="material-symbols-outlined text-[20px]">close</span>
-          </button>
+          <div className="flex items-center gap-1.5">
+            {/* Continuous Voice Toggle */}
+            <button
+              type="button"
+              onClick={toggleContinuousVoice}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
+                isVoiceActive
+                  ? 'bg-red-500/20 text-red-300 border-red-500/40 animate-pulse shadow-sm'
+                  : 'bg-white/5 hover:bg-white/10 text-cyan-300 border-white/10'
+              }`}
+              title="Toggle Live Hands-Free Voice"
+            >
+              <span className="material-symbols-outlined text-[16px]">
+                {isVoiceActive ? 'graphic_eq' : 'mic'}
+              </span>
+              <span className="hidden sm:inline">
+                {isVoiceActive ? (isRTL ? 'صوت نشط' : 'Voice Live') : (isRTL ? 'محادثة صوتية' : 'Voice')}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                stopSpeaking();
+                onClose();
+              }}
+              className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors cursor-pointer border border-white/10"
+            >
+              <span className="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          </div>
         </div>
+
+        {/* Live Audio Telemetry Ribbon if speaking or listening */}
+        {(isSpeaking || isVoiceActive) && (
+          <div className="px-4 py-1.5 bg-[#0a101d] border-b border-cyan-500/30 flex items-center justify-between text-xs font-mono">
+            <div className="flex items-center gap-2 text-cyan-300">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+              <span>
+                {isSpeaking
+                  ? (isRTL ? 'منارة تتحدث صوتياً...' : 'Manarah AI speaking...')
+                  : (isRTL ? 'الميكروفون يستمع لصوتك...' : 'Listening for executive command...')}
+              </span>
+            </div>
+
+            {isSpeaking && (
+              <button
+                type="button"
+                onClick={stopSpeaking}
+                className="text-[11px] text-red-400 hover:underline cursor-pointer flex items-center gap-1"
+              >
+                <span className="material-symbols-outlined text-[14px]">volume_off</span>
+                <span>{isRTL ? 'إسكات الصوت' : 'Mute'}</span>
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Message Thread */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3.5 text-start">
@@ -159,6 +273,17 @@ export const ExecutiveAiCopilotModal: React.FC<ExecutiveAiCopilotModalProps> = (
                   <span className="text-gray-300">DR. TARIQ</span>
                 )}
                 <span>• {m.timestamp}</span>
+
+                {m.sender === 'ai' && (
+                  <button
+                    type="button"
+                    onClick={() => speakText(m.text)}
+                    className="p-0.5 rounded hover:bg-white/10 text-gray-400 hover:text-cyan-300 transition-colors cursor-pointer"
+                    title="Play Voice Narration"
+                  >
+                    <span className="material-symbols-outlined text-[13px]">volume_up</span>
+                  </button>
+                )}
               </div>
 
               <div
@@ -201,6 +326,21 @@ export const ExecutiveAiCopilotModal: React.FC<ExecutiveAiCopilotModalProps> = (
 
         {/* Input Bar */}
         <div className="p-3 bg-[#111827] border-t border-white/10 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleContinuousVoice}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer border ${
+              isVoiceActive
+                ? 'bg-red-500 text-white border-red-400 shadow-md animate-pulse'
+                : 'bg-[#0b0f19] text-cyan-400 hover:bg-white/5 border-white/10'
+            }`}
+            title="Speak into Microphone"
+          >
+            <span className="material-symbols-outlined text-[20px]">
+              {isVoiceActive ? 'graphic_eq' : 'mic'}
+            </span>
+          </button>
+
           <input
             type="text"
             value={inputText}
@@ -210,8 +350,8 @@ export const ExecutiveAiCopilotModal: React.FC<ExecutiveAiCopilotModalProps> = (
             }}
             placeholder={
               isRTL
-                ? 'اسأل منارة عن استراتيجيات الرواتب، المقابلات، أو صياغة الملف...'
-                : 'Ask Manarah about salary benchmarks, board pitches, or CV...'
+                ? 'اسأل منارة بالصوت أو النص عن استراتيجيات الرواتب، المقابلات...'
+                : 'Ask Manarah by voice or text about salary benchmarks, board pitches...'
             }
             className="flex-1 bg-[#0b0f19] border border-white/10 focus:border-cyan-400 text-white rounded-xl px-3.5 py-2.5 text-xs outline-none transition-colors"
           />

@@ -55,7 +55,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
 
   return (
     <nav className="sticky bottom-0 w-full z-30 bg-[#0b0f19]/95 backdrop-blur-xl border-t border-white/10 shadow-[0_-10px_25px_rgba(0,0,0,0.5)]">
-      <div className="grid grid-cols-5 items-center h-15 px-1">
+      <div className="max-w-2xl mx-auto grid grid-cols-5 items-center h-15 px-1">
         {navItems.map((item) => {
           const isActive = currentScreen === item.id;
           return (

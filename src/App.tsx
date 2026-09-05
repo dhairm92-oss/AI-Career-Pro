@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ScreenId, Language } from './types';
+import { ScreenId, Language, DeviceMode } from './types';
 import { ASSETS } from './data/mockData';
 import { Header } from './components/common/Header';
 import { BottomNav } from './components/common/BottomNav';
@@ -21,16 +21,29 @@ import { SettingsScreen } from './components/screens/SettingsScreen';
 import { CompletionHubScreen } from './components/screens/CompletionHubScreen';
 import { QuantumFirewallHUD } from './components/modals/QuantumFirewallHUD';
 import { ExecutiveAiCopilotModal } from './components/modals/ExecutiveAiCopilotModal';
+import { BoardNrcStressTestModal } from './components/modals/BoardNrcStressTestModal';
+import { LtiVestingTrackerModal } from './components/modals/LtiVestingTrackerModal';
+import { SovereignSecureLinkModal } from './components/modals/SovereignSecureLinkModal';
 
 function AppContent() {
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('01_splash');
   const [language, setLanguage] = useState<Language>('ar');
-  const [deviceMode, setDeviceMode] = useState<'phone' | 'full'>('phone');
+  const [deviceMode, setDeviceMode] = useState<DeviceMode>('mobile');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isFirewallOpen, setIsFirewallOpen] = useState(false);
-  const [isCopilotOpen, setIsCopilotOpen] = useState(false);
 
-  const { isDataInjectorOpen, setIsDataInjectorOpen } = useExecutive();
+  const {
+    isDataInjectorOpen,
+    setIsDataInjectorOpen,
+    isCopilotOpen,
+    setIsCopilotOpen,
+    isNrcStressTestOpen,
+    setIsNrcStressTestOpen,
+    isLtiTrackerOpen,
+    setIsLtiTrackerOpen,
+    isSecureLinkOpen,
+    setIsSecureLinkOpen,
+  } = useExecutive();
 
   // Update document direction and lang when language changes
   useEffect(() => {
@@ -54,8 +67,27 @@ function AppContent() {
     );
   };
 
-  const handleToggleDeviceMode = () => {
-    setDeviceMode((prev) => (prev === 'phone' ? 'full' : 'phone'));
+  const handleSelectDeviceMode = (mode: DeviceMode) => {
+    setDeviceMode(mode);
+    const notifications: Record<DeviceMode, { ar: string; en: string }> = {
+      mobile: {
+        ar: 'تم ضبط العرض لهواتف أندرويد وآيفون الذكية (390-414px)',
+        en: 'Configured for Android & iPhone Mobile Devices',
+      },
+      tablet: {
+        ar: 'تم ضبط العرض لأجهزة الآيباد والتابلت اللوحي (iPad Pro 768-820px)',
+        en: 'Configured for iPad Pro & Android Tablets',
+      },
+      desktop: {
+        ar: 'تم ضبط العرض لبوابة سطح المكتب التنفيذية (Web Desktop Portal)',
+        en: 'Configured for Executive Web Desktop Portal',
+      },
+      fluid: {
+        ar: 'تم تفعيل وضع التجاوب التلقائي المباشر (Fluid Responsive Fullscreen)',
+        en: 'Activated Native Fluid Responsive Fullscreen',
+      },
+    };
+    showToast(notifications[mode][language]);
   };
 
   const renderScreen = () => {
@@ -163,7 +195,7 @@ function AppContent() {
         deviceMode={deviceMode}
         onSelectScreen={setCurrentScreen}
         onToggleLanguage={handleToggleLanguage}
-        onToggleDeviceMode={handleToggleDeviceMode}
+        onSelectDeviceMode={handleSelectDeviceMode}
       />
 
       {/* Main Container in Phone Chassis or Full View */}
@@ -214,6 +246,30 @@ function AppContent() {
       <ExecutiveDataInjectorModal
         isOpen={isDataInjectorOpen}
         onClose={() => setIsDataInjectorOpen(false)}
+        language={language}
+        onShowToast={showToast}
+      />
+
+      {/* Board NRC Stress-Test Simulator Modal */}
+      <BoardNrcStressTestModal
+        isOpen={isNrcStressTestOpen}
+        onClose={() => setIsNrcStressTestOpen(false)}
+        language={language}
+        onShowToast={showToast}
+      />
+
+      {/* LTI & Equity Vesting Schedule Tracker Modal */}
+      <LtiVestingTrackerModal
+        isOpen={isLtiTrackerOpen}
+        onClose={() => setIsLtiTrackerOpen(false)}
+        language={language}
+        onShowToast={showToast}
+      />
+
+      {/* Sovereign 48h Self-Destructing Secure Link Modal */}
+      <SovereignSecureLinkModal
+        isOpen={isSecureLinkOpen}
+        onClose={() => setIsSecureLinkOpen(false)}
         language={language}
         onShowToast={showToast}
       />

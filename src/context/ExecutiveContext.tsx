@@ -26,29 +26,62 @@ interface ExecutiveContextType {
   }) => void;
   isDataInjectorOpen: boolean;
   setIsDataInjectorOpen: (open: boolean) => void;
+  isNrcStressTestOpen: boolean;
+  setIsNrcStressTestOpen: (open: boolean) => void;
+  isLtiTrackerOpen: boolean;
+  setIsLtiTrackerOpen: (open: boolean) => void;
+  isSecureLinkOpen: boolean;
+  setIsSecureLinkOpen: (open: boolean) => void;
+  isCopilotOpen: boolean;
+  setIsCopilotOpen: (open: boolean) => void;
 }
 
 const ExecutiveContext = createContext<ExecutiveContextType | undefined>(undefined);
 
 export const ExecutiveProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentProfile, setCurrentProfile] = useState<ExecutiveProfile>(EXECUTIVE_PROFILES[0]);
+  const [currentProfile, setCurrentProfile] = useState<ExecutiveProfile>(() => {
+    try {
+      const saved = localStorage.getItem('sovereign_executive_profile');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch {
+      // ignore storage access errors
+    }
+    return EXECUTIVE_PROFILES[0];
+  });
+
   const [selectedRequisition, setSelectedRequisition] = useState<MegaprojectRequisition>(
     SOVEREIGN_REQUISITIONS[0]
   );
   const [isDataInjectorOpen, setIsDataInjectorOpen] = useState(false);
+  const [isNrcStressTestOpen, setIsNrcStressTestOpen] = useState(false);
+  const [isLtiTrackerOpen, setIsLtiTrackerOpen] = useState(false);
+  const [isSecureLinkOpen, setIsSecureLinkOpen] = useState(false);
+  const [isCopilotOpen, setIsCopilotOpen] = useState(false);
+
+  const saveProfileSafely = (profile: ExecutiveProfile) => {
+    try {
+      localStorage.setItem('sovereign_executive_profile', JSON.stringify(profile));
+    } catch {
+      // storage quota or private mode fallback
+    }
+  };
 
   const switchProfile = (profileId: string) => {
     const found = EXECUTIVE_PROFILES.find((p) => p.id === profileId);
     if (found) {
       setCurrentProfile(found);
+      saveProfileSafely(found);
     }
   };
 
   const updateProfile = (updates: Partial<ExecutiveProfile>) => {
-    setCurrentProfile((prev) => ({
-      ...prev,
-      ...updates,
-    }));
+    setCurrentProfile((prev) => {
+      const updated = { ...prev, ...updates };
+      saveProfileSafely(updated);
+      return updated;
+    });
   };
 
   const applyCustomData = (custom: {
@@ -61,19 +94,23 @@ export const ExecutiveProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     sectorAr: string;
     sectorEn: string;
   }) => {
-    setCurrentProfile((prev) => ({
-      ...prev,
-      nameAr: custom.nameAr || prev.nameAr,
-      nameEn: custom.nameEn || prev.nameEn,
-      titleAr: custom.titleAr || prev.titleAr,
-      titleEn: custom.titleEn || prev.titleEn,
-      baseSalaryMonthlySAR: custom.baseSalaryMonthlySAR || prev.baseSalaryMonthlySAR,
-      salaryBenchmarkAr: `${custom.baseSalaryMonthlySAR.toLocaleString()} ر.س شهرياً + حوافز LTI`,
-      salaryBenchmarkEn: `SAR ${custom.baseSalaryMonthlySAR.toLocaleString()} / month + LTI Equity`,
-      yearsExperience: custom.yearsExperience || prev.yearsExperience,
-      sectorAr: custom.sectorAr || prev.sectorAr,
-      sectorEn: custom.sectorEn || prev.sectorEn,
-    }));
+    setCurrentProfile((prev) => {
+      const updated = {
+        ...prev,
+        nameAr: custom.nameAr || prev.nameAr,
+        nameEn: custom.nameEn || prev.nameEn,
+        titleAr: custom.titleAr || prev.titleAr,
+        titleEn: custom.titleEn || prev.titleEn,
+        baseSalaryMonthlySAR: custom.baseSalaryMonthlySAR || prev.baseSalaryMonthlySAR,
+        salaryBenchmarkAr: `${custom.baseSalaryMonthlySAR.toLocaleString()} ر.س شهرياً + حوافز LTI`,
+        salaryBenchmarkEn: `SAR ${custom.baseSalaryMonthlySAR.toLocaleString()} / month + LTI Equity`,
+        yearsExperience: custom.yearsExperience || prev.yearsExperience,
+        sectorAr: custom.sectorAr || prev.sectorAr,
+        sectorEn: custom.sectorEn || prev.sectorEn,
+      };
+      saveProfileSafely(updated);
+      return updated;
+    });
   };
 
   return (
@@ -89,6 +126,14 @@ export const ExecutiveProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         applyCustomData,
         isDataInjectorOpen,
         setIsDataInjectorOpen,
+        isNrcStressTestOpen,
+        setIsNrcStressTestOpen,
+        isLtiTrackerOpen,
+        setIsLtiTrackerOpen,
+        isSecureLinkOpen,
+        setIsSecureLinkOpen,
+        isCopilotOpen,
+        setIsCopilotOpen,
       }}
     >
       {children}
